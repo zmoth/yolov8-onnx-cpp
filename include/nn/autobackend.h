@@ -35,6 +35,8 @@ public:
 
     AutoBackendOnnx(const char* modelPath, const char* logid, const char* provider);
 
+    AutoBackendOnnx(const void* modelData, size_t modelDataLength, const char* logid, const char* provider);
+
     // getters
     virtual const std::vector<int>& getImgsz();
     virtual const int& getStride();

@@ -122,7 +122,98 @@ AutoBackendOnnx::AutoBackendOnnx(const char* modelPath, const char* logid, const
 
 }
 
+AutoBackendOnnx::AutoBackendOnnx(const void* modelData, size_t modelDataLength, const char* logid, const char* provider)
+    : OnnxModelBase(modelData, modelDataLength, logid, provider)
+{
+    // then try to get additional info from metadata like imgsz, stride etc;
+    //  ideally you should get all of them but you'll raise error if smth is not in metadata (or not under the appropriate keys)
+    const std::unordered_map<std::string, std::string>& base_metadata = OnnxModelBase::getMetadata();
 
+    // post init imgsz
+    auto imgsz_iterator = base_metadata.find(MetadataConstants::IMGSZ);
+    if (imgsz_iterator != base_metadata.end()) {
+        // parse it and convert to int iterable
+        std::vector<int> imgsz = convertStringVectorToInts(parseVectorString(imgsz_iterator->second));
+        // set it here:
+        if (imgsz_.empty()) {
+            imgsz_ = imgsz;
+        }
+    }
+    else {
+        std::cerr << "Warning: Cannot get imgsz value from metadata" << std::endl;
+    }
+
+    // post init stride
+    auto stride_item = base_metadata.find(MetadataConstants::STRIDE);
+    if (stride_item != base_metadata.end()) {
+        // parse it and convert to int iterable
+        int stide_int = std::stoi(stride_item->second);
+        // set it here:
+        if (stride_ == OnnxInitializers::UNINITIALIZED_STRIDE) {
+            stride_ = stide_int;
+        }
+    }
+    else {
+        std::cerr << "Warning: Cannot get stride value from metadata" << std::endl;
+    }
+
+    // post init names
+    auto names_item = base_metadata.find(MetadataConstants::NAMES);
+    if (names_item != base_metadata.end()) {
+        // parse it and convert to int iterable
+        std::unordered_map<int, std::string> names = parseNames(names_item->second);
+        std::cout << "***Names from metadata***" << std::endl;
+        for (const auto& pair : names) {
+            std::cout << "Key: " << pair.first << ", Value: " << pair.second << std::endl;
+        }
+        // set it here:
+        if (names_.empty()) {
+            names_ = names;
+        }
+    }
+    else {
+        std::cerr << "Warning: Cannot get names value from metadata" << std::endl;
+    }
+
+    // post init number of classes - you can do that only and only if names_ is not empty and nc was not initialized previously
+    if (nc_ == OnnxInitializers::UNINITIALIZED_NC && !names_.empty()) {
+        nc_ = names_.size();
+    }
+    else {
+        std::cerr << "Warning: Cannot get nc value from metadata (probably names wasn't set)" << std::endl;
+    }
+
+    if (!imgsz_.empty() && inputTensorShape_.empty())
+    {
+        inputTensorShape_ = { 1, ch_, getHeight(), getWidth() };
+    }
+
+    if (!imgsz_.empty())
+    {
+        // Initialize cvSize_ using getHeight() and getWidth()
+        //cvSize_ = cv::MatSize()
+        cvSize_ = cv::Size(getWidth(), getHeight());
+        //cvMatSize_ = cv::MatSize(cvSize_.width, cvSize_.height);
+    }
+
+    // task init:
+    auto task_item = base_metadata.find(MetadataConstants::TASK);
+    if (task_item != base_metadata.end()) {
+        // parse it and convert to int iterable
+        std::string task = std::string(task_item->second);
+        // set it here:
+        if (task_.empty())
+        {
+            task_ = task;
+        }
+    }
+    else {
+        std::cerr << "Warning: Cannot get task value from metadata" << std::endl;
+    }
+
+    // TODO: raise assert if imgsz_ and task_ were not initialized (since you don't know in that case which postprocessing to use)
+
+}
 
 const std::vector<int>& AutoBackendOnnx::getImgsz() {
     return imgsz_;

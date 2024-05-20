@@ -12,6 +12,7 @@
 class OnnxModelBase {
 public:
     OnnxModelBase(const char* modelPath, const char* logid, const char* provider);
+    OnnxModelBase(const void* modelData, size_t modelDataLength, const char* logid, const char* provider);
     //OnnxModelBase();  // no default constructor should be there
     //virtual ~OnnxModelBase();
     virtual const std::vector<std::string>& getInputNames(); // = 0
