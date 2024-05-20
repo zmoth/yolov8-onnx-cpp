@@ -36,7 +36,7 @@ OnnxModelBase::OnnxModelBase(const char* modelPath, const char* logid, const cha
     auto cudaAvailable = std::find(availableProviders.begin(), availableProviders.end(), "CUDAExecutionProvider");
     OrtCUDAProviderOptions cudaOption;
 
-    if (provider == OnnxProviders::CUDA.c_str()) {  // strcmp(provider, OnnxProviders::CUDA.c_str()) == true strcmp(provider, "cuda") // (providerStr == "cuda")
+    if (strcmp(provider, OnnxProviders::CUDA.c_str()) == 0) {
         if (cudaAvailable == availableProviders.end()) {
             std::cout << "CUDA is not supported by your ONNXRuntime build. Fallback to CPU." << std::endl;
             //std::cout << "Inference device: CPU" << std::endl;
@@ -47,7 +47,7 @@ OnnxModelBase::OnnxModelBase(const char* modelPath, const char* logid, const cha
         }
     }
 
-    else if (provider == OnnxProviders::CPU.c_str()) {  // strcmp(provider, OnnxProviders::CPU.c_str()) == true) (providerStr == "cpu") {
+    else if (strcmp(provider, OnnxProviders::CPU.c_str()) == 0) {
         // "cpu" by default
     }
     else
@@ -137,7 +137,7 @@ OnnxModelBase::OnnxModelBase(const void* modelData, size_t modelDataLength, cons
     auto cudaAvailable = std::find(availableProviders.begin(), availableProviders.end(), "CUDAExecutionProvider");
     OrtCUDAProviderOptions cudaOption;
 
-    if (provider == OnnxProviders::CUDA.c_str()) {  // strcmp(provider, OnnxProviders::CUDA.c_str()) == true strcmp(provider, "cuda") // (providerStr == "cuda")
+    if (strcmp(provider, OnnxProviders::CUDA.c_str()) == 0) {
         if (cudaAvailable == availableProviders.end()) {
             std::cout << "CUDA is not supported by your ONNXRuntime build. Fallback to CPU." << std::endl;
             //std::cout << "Inference device: CPU" << std::endl;
@@ -148,7 +148,7 @@ OnnxModelBase::OnnxModelBase(const void* modelData, size_t modelDataLength, cons
         }
     }
 
-    else if (provider == OnnxProviders::CPU.c_str()) {  // strcmp(provider, OnnxProviders::CPU.c_str()) == true) (providerStr == "cpu") {
+    else if (strcmp(provider, OnnxProviders::CPU.c_str()) == 0) {
         // "cpu" by default
     }
     else
